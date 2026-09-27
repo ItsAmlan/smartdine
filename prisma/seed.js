@@ -1,7 +1,18 @@
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 const prisma = new PrismaClient();
+
+// Each staff password can be pinned via env (real deployments should set
+// these); otherwise a strong random one is generated and printed once at
+// the end of the run. Never hardcode a real password here — this file is
+// committed to the repo.
+function resolveStaffPassword(envVar) {
+  const fromEnv = process.env[envVar];
+  if (fromEnv) return { password: fromEnv, generated: false };
+  return { password: crypto.randomBytes(9).toString("base64url"), generated: true };
+}
 
 async function main() {
   console.log("🌱 Seeding SmartDine database...");
@@ -86,24 +97,41 @@ async function main() {
   console.log(`✅ ${dishes.length} dishes created`);
 
   // 5. Staff Users
-  const adminHash = await bcrypt.hash("admin123", 12);
-  const kitchenHash = await bcrypt.hash("1234", 12);
-  const stewardHash = await bcrypt.hash("1234", 12);
+  const admin = resolveStaffPassword("SEED_ADMIN_PASSWORD");
+  const kitchen = resolveStaffPassword("SEED_KITCHEN_PASSWORD");
+  const steward = resolveStaffPassword("SEED_STEWARD_PASSWORD");
 
   const staffUsers = [
-    { name: "Admin", role: "admin", passwordHash: adminHash, restaurantId: restaurant.id },
-    { name: "Kitchen", role: "kitchen", passwordHash: kitchenHash, restaurantId: restaurant.id },
-    { name: "Steward", role: "steward", passwordHash: stewardHash, restaurantId: restaurant.id },
+    { name: "Admin", role: "admin", ...admin },
+    { name: "Kitchen", role: "kitchen", ...kitchen },
+    { name: "Steward", role: "steward", ...steward },
   ];
 
+  const created = [];
   for (const staff of staffUsers) {
-    await prisma.staffUser.upsert({
+    const existing = await prisma.staffUser.findUnique({
       where: { name_role: { name: staff.name, role: staff.role } },
-      update: {},
-      create: staff,
+    });
+    if (!existing) {
+      await prisma.staffUser.create({
+        data: {
+          name: staff.name,
+          role: staff.role,
+          passwordHash: await bcrypt.hash(staff.password, 12),
+          restaurantId: restaurant.id,
+        },
+      });
+      created.push(staff);
+    }
+  }
+  console.log(`✅ Staff users ensured (${staffUsers.length} accounts, ${created.length} newly created)`);
+
+  if (created.length > 0) {
+    console.log("\n🔐 New staff credentials — save these now, they are shown only this once:");
+    created.forEach((staff) => {
+      console.log(`   ${staff.name} (${staff.role}): ${staff.password}${staff.generated ? "" : "  (from env)"}`);
     });
   }
-  console.log("✅ 3 staff users created (Admin/admin123, Kitchen/1234, Steward/1234)");
 
   console.log("\n🎉 Seeding complete!");
 }
