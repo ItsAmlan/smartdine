@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  LayoutDashboard, UtensilsCrossed, FolderOpen, QrCode, Users, Settings, LogOut, Menu, X,
+  LayoutDashboard, UtensilsCrossed, FolderOpen, QrCode, Users, Settings, KeyRound, LogOut, Menu, X,
 } from "lucide-react";
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { href: "/admin/categories", label: "Categories", icon: FolderOpen },
   { href: "/admin/tables", label: "Tables & QR", icon: QrCode },
   { href: "/admin/users", label: "Customers", icon: Users },
+  { href: "/admin/staff", label: "Staff Accounts", icon: KeyRound },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
@@ -44,7 +45,8 @@ export default function AdminLayoutClient({ children }) {
         return r.json();
       })
       .then((data) => {
-        if (data?.user) setAuthed(true);
+        if (data?.user?.role === "admin") setAuthed(true);
+        else router.replace("/admin/login");
         setChecking(false);
       })
       .catch(() => {

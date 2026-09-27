@@ -1,3 +1,9 @@
+// `npx prisma db seed` has the Prisma CLI load .env before running this
+// file, but it's also meant to be runnable directly (`node prisma/seed.js`,
+// as install.sh does), so load .env / .env.local ourselves too.
+require("dotenv").config();
+require("dotenv").config({ path: ".env.local", override: true });
+
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");

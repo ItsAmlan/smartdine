@@ -60,7 +60,10 @@ export default function KitchenDashboard() {
         if (!r.ok) { router.replace("/kitchen/login"); return; }
         return r.json();
       })
-      .then((data) => { if (data?.user) setAuthed(true); })
+      .then((data) => {
+        if (data?.user?.role === "admin" || data?.user?.role === "kitchen") setAuthed(true);
+        else router.replace("/kitchen/login");
+      })
       .catch(() => router.replace("/kitchen/login"));
   }, [router]);
 
