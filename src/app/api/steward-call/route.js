@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { emitSSE } from "@/lib/sse";
+import { requireAuth } from "@/lib/auth";
 
-// POST - Customer calls steward
+// POST - Customer calls steward (public, no login)
 export async function POST(request) {
   try {
     const { tableId, message } = await request.json();
@@ -47,9 +48,14 @@ export async function POST(request) {
   }
 }
 
-// GET - Get pending steward calls
+// GET - Get pending steward calls (steward or admin only)
 export async function GET() {
   try {
+    const auth = await requireAuth(["admin", "steward"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const calls = await prisma.stewardCall.findMany({
       include: { table: { select: { id: true, tableNumber: true } } },
       orderBy: { createdAt: "desc" },
@@ -62,9 +68,14 @@ export async function GET() {
   }
 }
 
-// PATCH - Acknowledge a steward call
+// PATCH - Acknowledge a steward call (steward or admin only)
 export async function PATCH(request) {
   try {
+    const auth = await requireAuth(["admin", "steward"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const { callId } = await request.json();
 
     if (!callId) {

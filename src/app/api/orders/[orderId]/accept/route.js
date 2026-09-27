@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { emitSSE } from "@/lib/sse";
+import { requireAuth } from "@/lib/auth";
 
-// POST - Chef accepts an order with estimated time
+// POST - Chef accepts an order with estimated time (kitchen or admin only)
 export async function POST(request, { params }) {
   try {
+    const auth = await requireAuth(["admin", "kitchen"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const { orderId } = await params;
     const { estimatedMinutes } = await request.json();
 

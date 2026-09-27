@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { emitSSE } from "@/lib/sse";
+import { requireAuth } from "@/lib/auth";
 
-// POST - Steward acknowledges and delivers order
+// POST - Steward acknowledges and delivers order (steward or admin only)
 export async function POST(request, { params }) {
   try {
+    const auth = await requireAuth(["admin", "steward"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const { orderId } = await params;
 
     const order = await prisma.order.findUnique({

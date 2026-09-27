@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { emitSSE } from "@/lib/sse";
+import { requireAuth } from "@/lib/auth";
 import crypto from "crypto";
 
 // GET - List orders (for kitchen/steward/admin)
 export async function GET(request) {
   try {
+    const auth = await requireAuth(["admin", "kitchen", "steward"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const tableId = searchParams.get("tableId");
@@ -93,8 +99,10 @@ export async function POST(request) {
       );
     }
 
-    // Generate order number
+    // Generate order number and an unguessable token customers use to view
+    // this order without a login (see /api/orders/[orderId]).
     const orderNumber = `SD-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
+    const accessToken = crypto.randomBytes(24).toString("hex");
 
     // Calculate totals
     const orderItems = items.map((item) => {
@@ -116,6 +124,7 @@ export async function POST(request) {
       const newOrder = await tx.order.create({
         data: {
           orderNumber,
+          accessToken,
           customerId: parseInt(customerId, 10),
           tableId: parseInt(tableId, 10),
           status: "PENDING",

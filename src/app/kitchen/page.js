@@ -18,7 +18,8 @@ export default function KitchenDashboard() {
   const [authed, setAuthed] = useState(false);
   const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState("active");
-  const [paused, setPaused] = useState(false);
+  const [acceptingOrders, setAcceptingOrders] = useState(true);
+  const [pauseUpdating, setPauseUpdating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [acceptModal, setAcceptModal] = useState(null);
   const [estTime, setEstTime] = useState("20");
@@ -44,6 +45,14 @@ export default function KitchenDashboard() {
     } catch { /* Handle silently */ }
   }, []);
 
+  const fetchKitchenStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/kitchen/status");
+      const data = await res.json();
+      if (typeof data.acceptingOrders === "boolean") setAcceptingOrders(data.acceptingOrders);
+    } catch { /* Handle silently */ }
+  }, []);
+
   // Auth check
   useEffect(() => {
     fetch("/api/auth/me")
@@ -59,7 +68,8 @@ export default function KitchenDashboard() {
     if (!authed) return;
     fetchOrders();
     fetchDishes();
-  }, [authed, fetchOrders, fetchDishes]);
+    fetchKitchenStatus();
+  }, [authed, fetchOrders, fetchDishes, fetchKitchenStatus]);
 
   useEffect(() => {
     if (sseData?.type === "NEW_ORDER") {
@@ -70,7 +80,40 @@ export default function KitchenDashboard() {
       });
       try { const audio = new Audio("/sounds/notification.mp3"); audio.play().catch(() => {}); } catch {}
     }
+    if (sseData?.type === "KITCHEN_STATUS") {
+      setAcceptingOrders(sseData.acceptingOrders);
+      if (sseData.resumedOrders?.length) {
+        setOrders((prev) => {
+          const byId = new Map(prev.map((o) => [o.id, o]));
+          sseData.resumedOrders.forEach((o) => byId.set(o.id, o));
+          return Array.from(byId.values());
+        });
+      }
+    }
   }, [sseData]);
+
+  const handleTogglePause = async () => {
+    setPauseUpdating(true);
+    try {
+      const res = await fetch("/api/kitchen/status", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acceptingOrders: !acceptingOrders }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAcceptingOrders(data.acceptingOrders);
+        if (data.resumedOrders?.length) {
+          setOrders((prev) => {
+            const byId = new Map(prev.map((o) => [o.id, o]));
+            data.resumedOrders.forEach((o) => byId.set(o.id, o));
+            return Array.from(byId.values());
+          });
+        }
+      }
+    } catch { /* Handle silently */ }
+    finally { setPauseUpdating(false); }
+  };
 
   const handleAccept = async () => {
     if (!acceptModal || !estTime) return;
@@ -134,17 +177,18 @@ export default function KitchenDashboard() {
           {showDishes ? "Orders" : "Dish Menu"}
         </GlassButton>
         <button
-          onClick={() => setPaused(!paused)}
-          className={`p-2 rounded-xl transition-colors ${paused ? "bg-red-500 text-white" : "bg-white/50 backdrop-blur-sm text-gray-600 hover:bg-white/70"}`}
-          title={paused ? "Resume accepting orders" : "Pause new orders"}
+          onClick={handleTogglePause}
+          disabled={pauseUpdating}
+          className={`p-2 rounded-xl transition-colors disabled:opacity-50 ${!acceptingOrders ? "bg-red-500 text-white" : "bg-white/50 backdrop-blur-sm text-gray-600 hover:bg-white/70"}`}
+          title={acceptingOrders ? "Pause new orders" : "Resume accepting orders"}
         >
-          {paused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
+          {!acceptingOrders ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
         </button>
       </GlassNavbar>
 
-      {paused && (
+      {!acceptingOrders && (
         <div className="bg-red-50/80 backdrop-blur-sm border-b border-red-200/60 px-5vw py-2 text-center">
-          <p className="text-red-600 text-sm font-medium">⏸ Kitchen is paused — new orders will be held</p>
+          <p className="text-red-600 text-sm font-medium">⏸ Kitchen is paused — new orders will be held until you resume</p>
         </div>
       )}
 

@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 
-// GET - List tables
+// GET - List tables (admin only)
 export async function GET() {
   try {
+    const auth = await requireAuth(["admin"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const tables = await prisma.table.findMany({
       orderBy: { tableNumber: "asc" },
       include: { _count: { select: { orders: true } } },

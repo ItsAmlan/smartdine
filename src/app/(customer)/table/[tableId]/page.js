@@ -31,15 +31,9 @@ export default function TablePage({ params }) {
       .catch(() => {});
 
     const savedEmail = typeof window !== "undefined" ? localStorage.getItem(`smartdine-email-${tableId}`) : null;
-    if (savedEmail) {
-      fetch("/api/customer/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: "check", email: savedEmail, phone: "0000000000",
-          tableId: parseInt(tableId, 10),
-        }),
-      })
+    const savedToken = typeof window !== "undefined" ? localStorage.getItem("smartdine-customer-token") : null;
+    if (savedEmail && savedToken) {
+      fetch(`/api/customer/active-order?email=${encodeURIComponent(savedEmail)}&tableId=${parseInt(tableId, 10)}&token=${encodeURIComponent(savedToken)}`)
         .then((r) => r.json())
         .then((data) => {
           if (data.activeOrder) setActiveOrder(data.activeOrder);
@@ -76,9 +70,10 @@ export default function TablePage({ params }) {
       if (!res.ok) { setErrors({ submit: data.error }); return; }
       localStorage.setItem(`smartdine-email-${tableId}`, form.email);
       localStorage.setItem(`smartdine-customer-id`, data.customer.id);
+      localStorage.setItem(`smartdine-customer-token`, data.customer.recognitionToken);
       setTableId(parseInt(tableId, 10));
       setCustomer(data.customer);
-      if (data.activeOrder) router.push(`/order/${data.activeOrder.id}`);
+      if (data.activeOrder) router.push(`/order/${data.activeOrder.id}?t=${encodeURIComponent(data.activeOrder.accessToken)}`);
       else router.push(`/table/${tableId}/menu`);
     } catch {
       setErrors({ submit: "Something went wrong. Please try again." });
@@ -126,7 +121,7 @@ export default function TablePage({ params }) {
               <OrderStatusTracker status={activeOrder.status} estimatedMinutes={activeOrder.estimatedMinutes} />
             </div>
             <div className="flex gap-3">
-              <GlassButton onClick={() => router.push(`/order/${activeOrder.id}`)} color="orange" className="flex-1">View Order</GlassButton>
+              <GlassButton onClick={() => router.push(`/order/${activeOrder.id}?t=${encodeURIComponent(activeOrder.accessToken)}`)} color="orange" className="flex-1">View Order</GlassButton>
               <GlassButton onClick={handleNewOrder} variant="secondary" className="flex-1">New Order</GlassButton>
             </div>
           </GlassCard>

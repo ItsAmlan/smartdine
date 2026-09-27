@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { use } from "react";
 import GlassCard from "@/components/ui/GlassCard";
 import GlassButton from "@/components/ui/GlassButton";
@@ -15,17 +15,19 @@ import { Package, Receipt } from "lucide-react";
 export default function OrderStatusPage({ params }) {
   const { orderId } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("t") || "";
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const { data: sseData } = useSSE(`/api/events/customer/${orderId}`);
+  const { data: sseData } = useSSE(`/api/events/customer/${orderId}?t=${encodeURIComponent(token)}`);
 
   useEffect(() => {
-    fetch(`/api/orders/${orderId}`)
+    fetch(`/api/orders/${orderId}?t=${encodeURIComponent(token)}`)
       .then((r) => r.json())
       .then((data) => { setOrder(data.order); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [orderId]);
+  }, [orderId, token]);
 
   useEffect(() => {
     if (sseData && sseData.order) setOrder(sseData.order);

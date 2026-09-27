@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 
-// GET - List categories
+// GET - List categories (admin only)
 export async function GET() {
   try {
+    const auth = await requireAuth(["admin"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const categories = await prisma.category.findMany({
       orderBy: { sortOrder: "asc" },
       include: { _count: { select: { dishes: true } } },

@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 
-// GET - Get single dish
+// GET - Get single dish (admin only)
 export async function GET(request, { params }) {
   try {
+    const auth = await requireAuth(["admin"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const { dishId } = await params;
     const dish = await prisma.dish.findUnique({
       where: { id: parseInt(dishId, 10) },

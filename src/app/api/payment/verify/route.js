@@ -41,9 +41,12 @@ export async function POST(request) {
         },
       });
 
+      const restaurant = await tx.restaurant.findFirst();
+      const orderStatus = restaurant?.acceptingOrders === false ? "PAUSED" : "PAID";
+
       const order = await tx.order.update({
         where: { id: payment.orderId },
-        data: { status: "PAID" },
+        data: { status: orderStatus },
         include: {
           items: { include: { dish: true } },
           customer: { select: { id: true, name: true, email: true } },
@@ -55,7 +58,7 @@ export async function POST(request) {
       return order;
     });
 
-    // Notify kitchen about new paid order
+    // Notify kitchen about the new order (held for now if the kitchen is paused)
     emitSSE("kitchen", {
       type: "NEW_ORDER",
       order: result,

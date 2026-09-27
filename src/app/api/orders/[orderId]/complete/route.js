@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { emitSSE } from "@/lib/sse";
+import { requireAuth } from "@/lib/auth";
 
-// POST - Chef marks order as complete
+// POST - Chef marks order as complete (kitchen or admin only)
 export async function POST(request, { params }) {
   try {
+    const auth = await requireAuth(["admin", "kitchen"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const { orderId } = await params;
 
     const order = await prisma.order.findUnique({

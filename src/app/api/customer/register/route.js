@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import crypto from "crypto";
 
 export async function POST(request) {
   try {
@@ -42,12 +43,22 @@ export async function POST(request) {
       );
     }
 
-    // Upsert customer (find by email or create new)
-    const customer = await prisma.customer.upsert({
+    // Upsert customer (find by email or create new). New rows get an
+    // unguessable recognitionToken the browser keeps locally, so a later
+    // silent "do I have an active order" check (see active-order/route.js)
+    // can't be satisfied by anyone who merely knows this email address.
+    let customer = await prisma.customer.upsert({
       where: { email },
       update: { name, phone: phoneClean },
-      create: { name, email, phone: phoneClean },
+      create: { name, email, phone: phoneClean, recognitionToken: crypto.randomBytes(24).toString("hex") },
     });
+
+    if (!customer.recognitionToken) {
+      customer = await prisma.customer.update({
+        where: { id: customer.id },
+        data: { recognitionToken: crypto.randomBytes(24).toString("hex") },
+      });
+    }
 
     // Check for active orders on this table for this customer
     const activeOrder = await prisma.order.findFirst({
@@ -70,6 +81,7 @@ export async function POST(request) {
         id: customer.id,
         name: customer.name,
         email: customer.email,
+        recognitionToken: customer.recognitionToken,
       },
       activeOrder: activeOrder || null,
       tableId: table.id,
@@ -83,4 +95,3 @@ export async function POST(request) {
     );
   }
 }
-
