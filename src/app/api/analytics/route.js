@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth";
 
-// GET - Analytics data
+// GET - Analytics data (admin only)
 export async function GET(request) {
   try {
+    const auth = await requireAuth(["admin"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const { searchParams } = new URL(request.url);
     const dateStr = searchParams.get("date") || new Date().toISOString().split("T")[0];
 

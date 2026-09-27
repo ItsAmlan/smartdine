@@ -11,7 +11,7 @@ const steps = [
 ];
 
 const statusIndex = {
-  PAID: 0, ACCEPTED: 1, PREPARING: 2, READY: 3, DELIVERED: 4,
+  PAID: 0, PAUSED: 0, ACCEPTED: 1, PREPARING: 2, READY: 3, DELIVERED: 4,
 };
 
 export default function OrderStatusTracker({ status, estimatedMinutes }) {

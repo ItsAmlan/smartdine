@@ -8,13 +8,14 @@ datasource db {
 }
 
 model Restaurant {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(255)
-  logo      String?  @db.VarChar(500)
-  tagline   String?  @db.VarChar(500)
-  createdAt DateTime @default(now())
-  tables    Table[]
-  staff     StaffUser[]
+  id               Int      @id @default(autoincrement())
+  name             String   @db.VarChar(255)
+  logo             String?  @db.VarChar(500)
+  tagline          String?  @db.VarChar(500)
+  acceptingOrders  Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  tables           Table[]
+  staff            StaffUser[]
 }
 
 model Table {

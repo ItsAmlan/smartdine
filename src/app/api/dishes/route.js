@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 
-// GET - List all dishes (admin)
+// GET - List all dishes (admin or kitchen)
 export async function GET() {
   try {
+    const auth = await requireAuth(["admin", "kitchen"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const dishes = await prisma.dish.findMany({
       include: { category: { select: { id: true, name: true } } },
       orderBy: [{ category: { sortOrder: "asc" } }, { name: "asc" }],

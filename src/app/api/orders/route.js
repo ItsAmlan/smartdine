@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { emitSSE } from "@/lib/sse";
+import { requireAuth } from "@/lib/auth";
 import crypto from "crypto";
 
 // GET - List orders (for kitchen/steward/admin)
 export async function GET(request) {
   try {
+    const auth = await requireAuth(["admin", "kitchen", "steward"]);
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const tableId = searchParams.get("tableId");
