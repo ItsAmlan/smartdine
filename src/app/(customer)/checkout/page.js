@@ -61,7 +61,7 @@ export default function CheckoutPage() {
               body: JSON.stringify({ razorpay_order_id: response.razorpay_order_id, razorpay_payment_id: response.razorpay_payment_id, razorpay_signature: response.razorpay_signature }),
             });
             const verifyData = await verifyRes.json();
-            if (verifyData.success) { clearCart(); router.push(`/order/${orderData.order.id}`); }
+            if (verifyData.success) { clearCart(); router.push(`/order/${orderData.order.id}?t=${encodeURIComponent(orderData.order.accessToken)}`); }
             else { setError("Payment verification failed. Please contact support."); }
           } catch { setError("Payment verification error. Please contact support."); }
           setPaying(false);

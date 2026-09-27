@@ -25,6 +25,37 @@ function sign(payload) {
   return crypto.createHmac("sha256", getSessionSecret()).update(payload).digest("hex");
 }
 
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+
+// Brute-force guard for staff login. Kitchen/steward accounts in
+// particular use short numeric PINs, which are otherwise trivially
+// guessable without any throttling.
+export async function checkLoginLockout(user) {
+  if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
+    const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+    return { locked: true, minutesLeft };
+  }
+  return { locked: false };
+}
+
+export async function recordFailedLogin(user) {
+  const attempts = user.failedAttempts + 1;
+  const data =
+    attempts >= MAX_FAILED_ATTEMPTS
+      ? { failedAttempts: 0, lockedUntil: new Date(Date.now() + LOCKOUT_MS) }
+      : { failedAttempts: attempts };
+
+  await prisma.staffUser.update({ where: { id: user.id }, data });
+}
+
+export async function recordSuccessfulLogin(userId) {
+  await prisma.staffUser.update({
+    where: { id: userId },
+    data: { failedAttempts: 0, lockedUntil: null },
+  });
+}
+
 export async function hashPassword(password) {
   return bcrypt.hash(password, SALT_ROUNDS);
 }
@@ -103,5 +134,15 @@ export async function requireAuth(allowedRoles = []) {
   }
 
   return { user };
+}
+
+// Constant-time comparison for customer-held order access tokens, so a
+// mismatched (or missing) token can't be distinguished by timing.
+export function tokensMatch(a, b) {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
 }
 

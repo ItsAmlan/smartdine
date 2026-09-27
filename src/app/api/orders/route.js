@@ -99,8 +99,10 @@ export async function POST(request) {
       );
     }
 
-    // Generate order number
+    // Generate order number and an unguessable token customers use to view
+    // this order without a login (see /api/orders/[orderId]).
     const orderNumber = `SD-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
+    const accessToken = crypto.randomBytes(24).toString("hex");
 
     // Calculate totals
     const orderItems = items.map((item) => {
@@ -122,6 +124,7 @@ export async function POST(request) {
       const newOrder = await tx.order.create({
         data: {
           orderNumber,
+          accessToken,
           customerId: parseInt(customerId, 10),
           tableId: parseInt(tableId, 10),
           status: "PENDING",

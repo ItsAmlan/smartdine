@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { verifyPassword, createSession } from "@/lib/auth";
+import {
+  verifyPassword,
+  createSession,
+  checkLoginLockout,
+  recordFailedLogin,
+  recordSuccessfulLogin,
+} from "@/lib/auth";
 
 export async function POST(request) {
   try {
@@ -29,14 +35,26 @@ export async function POST(request) {
       );
     }
 
+    const lockout = await checkLoginLockout(user);
+    if (lockout.locked) {
+      return NextResponse.json(
+        {
+          error: `Too many failed attempts. Try again in ${lockout.minutesLeft} minute${lockout.minutesLeft === 1 ? "" : "s"}.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) {
+      await recordFailedLogin(user);
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
+    await recordSuccessfulLogin(user.id);
     await createSession(user.id);
 
     return NextResponse.json({
@@ -50,4 +68,3 @@ export async function POST(request) {
     );
   }
 }
-

@@ -59,12 +59,13 @@ model Dish {
 }
 
 model Customer {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(200)
-  email     String   @db.VarChar(255)
-  phone     String   @db.VarChar(20)
-  createdAt DateTime @default(now())
-  orders    Order[]
+  id               Int      @id @default(autoincrement())
+  name             String   @db.VarChar(200)
+  email            String   @db.VarChar(255)
+  phone            String   @db.VarChar(20)
+  recognitionToken String?  @unique @db.VarChar(64)
+  createdAt        DateTime @default(now())
+  orders           Order[]
 
   @@unique([email])
   @@index([phone])
@@ -73,6 +74,7 @@ model Customer {
 model Order {
   id               Int         @id @default(autoincrement())
   orderNumber      String      @unique @db.VarChar(20)
+  accessToken      String      @unique @db.VarChar(64)
   customerId       Int
   customer         Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   tableId          Int
@@ -136,14 +138,16 @@ model StewardCall {
 }
 
 model StaffUser {
-  id           Int       @id @default(autoincrement())
-  name         String    @db.VarChar(200)
-  role         String    @db.VarChar(30)
-  passwordHash String    @db.VarChar(255)
-  active       Boolean   @default(true)
-  restaurantId Int
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  createdAt    DateTime  @default(now())
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(200)
+  role           String    @db.VarChar(30)
+  passwordHash   String    @db.VarChar(255)
+  active         Boolean   @default(true)
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  restaurantId   Int
+  restaurant     Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
 
   @@unique([name, role])
   @@index([role])

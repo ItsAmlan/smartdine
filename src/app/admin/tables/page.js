@@ -33,10 +33,15 @@ export default function TablesPage() {
     try { const res = await fetch(`/api/tables?id=${id}`, { method: "DELETE" }); if (res.ok) setTables((prev) => prev.filter((t) => t.id !== id)); } catch {}
   };
 
+  const escapeHtml = (str) =>
+    String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
   const printQR = (table) => {
     const printWindow = window.open("", "_blank");
     const url = `${appUrl}/table/${table.id}`;
-    printWindow.document.write(`<!DOCTYPE html><html><head><title>${table.tableNumber} QR Code</title><style>body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;margin:0}.container{text-align:center;padding:40px}h1{font-size:24px;margin-bottom:10px}p{color:#666;margin-bottom:20px}@media print{body{-webkit-print-color-adjust:exact}}</style></head><body><div class="container"><h1>${table.tableNumber}</h1><p>Scan to order</p><div id="qr"></div><p style="margin-top:20px;font-size:12px;color:#999">${url}</p></div><script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"><\/script><script>QRCode.toCanvas(document.createElement('canvas'),${JSON.stringify(url)},{width:300},function(err,canvas){if(!err){document.getElementById('qr').appendChild(canvas);setTimeout(function(){window.print()},500)}});<\/script></body></html>`);
+    const safeTableNumber = escapeHtml(table.tableNumber);
+    const safeUrl = escapeHtml(url);
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>${safeTableNumber} QR Code</title><style>body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;margin:0}.container{text-align:center;padding:40px}h1{font-size:24px;margin-bottom:10px}p{color:#666;margin-bottom:20px}@media print{body{-webkit-print-color-adjust:exact}}</style></head><body><div class="container"><h1>${safeTableNumber}</h1><p>Scan to order</p><div id="qr"></div><p style="margin-top:20px;font-size:12px;color:#999">${safeUrl}</p></div><script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"><\/script><script>QRCode.toCanvas(document.createElement('canvas'),${JSON.stringify(url)},{width:300},function(err,canvas){if(!err){document.getElementById('qr').appendChild(canvas);setTimeout(function(){window.print()},500)}});<\/script></body></html>`);
     printWindow.document.close();
   };
 
