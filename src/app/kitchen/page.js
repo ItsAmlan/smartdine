@@ -10,6 +10,7 @@ import GlassNavbar from "@/components/ui/GlassNavbar";
 import GlassModal from "@/components/ui/GlassModal";
 import GlassInput from "@/components/ui/GlassInput";
 import GlassToggle from "@/components/ui/GlassToggle";
+import EmptyState from "@/components/ui/EmptyState";
 import useSSE from "@/hooks/useSSE";
 
 export default function KitchenDashboard() {
@@ -151,7 +152,16 @@ export default function KitchenDashboard() {
         {showDishes ? (
           <div>
             <h2 className="text-gray-900 font-bold text-lg mb-4">Dish Availability</h2>
-            <div className="space-y-2">
+            {dishes.length === 0 ? (
+              <EmptyState
+                icon={ChefHat}
+                eyebrow="Dish availability"
+                title="No dishes to manage"
+                description="Add dishes in the admin menu and they will appear here for the kitchen."
+                color="amber"
+              />
+            ) : (
+              <div className="space-y-2">
               {dishes.map((dish) => (
                 <div key={dish.id} className="flex items-center justify-between backdrop-blur-xl bg-white/60 border border-white/80 rounded-xl px-4 py-3 shadow-sm">
                   <div className="flex items-center gap-3">
@@ -169,7 +179,8 @@ export default function KitchenDashboard() {
                   />
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -190,10 +201,13 @@ export default function KitchenDashboard() {
             {loading ? (
               <div className="text-center py-12 text-gray-400">Loading orders...</div>
             ) : filteredOrders.length === 0 ? (
-              <div className="text-center py-12 text-gray-400">
-                <ChefHat className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                No orders in this category
-              </div>
+              <EmptyState
+                icon={ChefHat}
+                eyebrow="Kitchen queue"
+                title="This station is clear"
+                description="No orders match the selected queue right now. New tickets will appear here automatically."
+                color="amber"
+              />
             ) : (
               <div className="space-y-4">
                 {filteredOrders.map((order) => (

@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
-import { Minus, Plus, Package, Trash2 } from "lucide-react";
+import { Minus, Plus, Package, ShoppingBag, Trash2 } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
 import GlassButton from "@/components/ui/GlassButton";
 import GlassNavbar from "@/components/ui/GlassNavbar";
+import EmptyState from "@/components/ui/EmptyState";
 import { useCart } from "@/context/CartContext";
 
 export default function CheckoutPage() {
@@ -80,9 +81,15 @@ export default function CheckoutPage() {
     return (
       <>
         <GlassNavbar title="Checkout" color="orange" showBack onBack={() => router.back()} />
-        <div className="px-5vw py-12 text-center">
-          <p className="text-gray-500 mb-4">Your cart is empty</p>
-          <GlassButton onClick={() => router.back()} color="orange">Browse Menu</GlassButton>
+        <div className="px-5vw py-12">
+          <EmptyState
+            icon={ShoppingBag}
+            eyebrow="Your order"
+            title="Your cart is waiting"
+            description="Choose a few favourites from the menu and they will appear here when you are ready."
+            color="orange"
+            action={<GlassButton onClick={() => router.back()} color="orange">Browse Menu</GlassButton>}
+          />
         </div>
       </>
     );

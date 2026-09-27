@@ -7,8 +7,8 @@ export default function CategoryTabs({ categories, activeCategory, onSelect }) {
         onClick={() => onSelect(null)}
         className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
           activeCategory === null
-            ? "bg-orange-500 text-white shadow-sm"
-            : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+            ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-lg shadow-orange-500/20"
+            : "bg-white/65 backdrop-blur-xl text-gray-600 border border-white/90 shadow-sm hover:bg-white/90"
         }`}
       >
         All

@@ -6,6 +6,7 @@ export default function GlassCard({
   color = "orange",
   hover = false,
   padding = "p-6",
+  blurClass = "backdrop-blur-2xl",
 }) {
   const hoverBorderColors = {
     orange: "hover:border-orange-300/80",
@@ -21,7 +22,7 @@ export default function GlassCard({
 
   return (
     <div
-      className={`backdrop-blur-xl bg-white/60 border border-white/80 shadow-lg shadow-black/[0.04] ring-1 ring-white/50 rounded-2xl ${padding} ${hoverClasses} ${className}`}
+      className={`relative overflow-hidden ${blurClass} bg-gradient-to-br from-white/80 to-white/45 border border-white/90 shadow-[0_18px_48px_rgba(30,41,59,0.09)] ring-1 ring-white/60 rounded-[1.35rem] ${padding} ${hoverClasses} ${className}`}
     >
       {children}
     </div>

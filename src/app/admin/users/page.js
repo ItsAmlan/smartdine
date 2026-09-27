@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users } from "lucide-react";
+import { UserRoundSearch, Users } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
 import GlassInput from "@/components/ui/GlassInput";
+import EmptyState from "@/components/ui/EmptyState";
 
 function maskEmail(email) {
   const [local, domain] = email.split("@");
@@ -46,7 +47,13 @@ export default function CustomersPage() {
       {loading ? (
         <div className="text-center py-12 text-gray-400">Loading...</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">No customers found</div>
+        <EmptyState
+          icon={UserRoundSearch}
+          eyebrow="Customer directory"
+          title={search ? "No matching customers" : "No customers yet"}
+          description={search ? "Try a different name or email address." : "Customer details will appear here after their first order."}
+          color="green"
+        />
       ) : (
         <div className="space-y-3">
           {filtered.map((customer) => (

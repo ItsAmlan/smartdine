@@ -28,8 +28,8 @@ export default function GlassNavbar({
   };
 
   return (
-    <nav className={`sticky top-0 z-40 w-full bg-white/70 backdrop-blur-2xl backdrop-saturate-150 border-b ${borderColors[color] || borderColors.orange} shadow-sm shadow-black/[0.03]`}>
-      <div className="px-5vw py-3 flex items-center justify-between">
+    <nav className={`sticky top-0 z-40 w-full bg-white/55 backdrop-blur-3xl backdrop-saturate-150 border-b ${borderColors[color] || borderColors.orange} shadow-[0_8px_30px_rgba(30,41,59,.05)]`}>
+      <div className="px-5vw py-3.5 flex items-center justify-between">
         {/* Left side */}
         <div className="flex items-center gap-3">
           {showBack && (
@@ -50,7 +50,7 @@ export default function GlassNavbar({
             />
           )}
           <h1
-            className={`text-lg font-bold ${titleColors[color] || titleColors.orange}`}
+            className={`text-lg font-extrabold tracking-[-0.035em] ${titleColors[color] || titleColors.orange}`}
           >
             {title}
           </h1>

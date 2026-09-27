@@ -12,17 +12,17 @@ export default function DishCard({ dish, cartItem, onAdd, onUpdateQuantity, onTo
 
   return (
     <div
-      className={`bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden transition-all duration-300 ${
-        !dish.available ? "opacity-50" : "hover:shadow-md"
+      className={`group relative bg-white/68 backdrop-blur-2xl border border-white/90 shadow-[0_14px_34px_rgba(30,41,59,.08)] rounded-[1.35rem] overflow-hidden transition-all duration-300 ${
+        !dish.available ? "opacity-50" : "hover:-translate-y-1 hover:shadow-[0_22px_42px_rgba(30,41,59,.15)]"
       }`}
     >
-      <div className="relative h-40 bg-gray-50">
+      <div className="relative h-40 bg-gradient-to-br from-orange-50 to-amber-100 overflow-hidden">
         {dish.image && !imageError ? (
           <Image
             src={dish.image}
             alt={dish.name}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
             onError={() => setImageError(true)}
           />
         ) : (
@@ -61,7 +61,7 @@ export default function DishCard({ dish, cartItem, onAdd, onUpdateQuantity, onTo
             {quantity === 0 ? (
               <button
                 onClick={() => onAdd(dish)}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-2 text-sm font-semibold transition-colors"
+                className="w-full bg-gradient-to-br from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white rounded-xl py-2.5 text-sm font-bold shadow-lg shadow-orange-500/20 transition-all hover:shadow-orange-500/30"
               >
                 ADD
               </button>

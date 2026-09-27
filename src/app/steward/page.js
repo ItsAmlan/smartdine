@@ -7,6 +7,7 @@ import GlassCard from "@/components/ui/GlassCard";
 import GlassButton from "@/components/ui/GlassButton";
 import GlassBadge from "@/components/ui/GlassBadge";
 import GlassNavbar from "@/components/ui/GlassNavbar";
+import EmptyState from "@/components/ui/EmptyState";
 import useSSE from "@/hooks/useSSE";
 
 export default function StewardDashboard() {
@@ -98,7 +99,14 @@ export default function StewardDashboard() {
           <div>
             <h2 className="text-gray-900 font-bold text-lg mb-4">Acknowledged Alerts</h2>
             {acknowledgedCalls.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No history yet</p>
+              <EmptyState
+                icon={Check}
+                eyebrow="Alert history"
+                title="No acknowledgements yet"
+                description="Resolved table calls will be collected here for quick review."
+                color="red"
+                compact
+              />
             ) : (
               <div className="space-y-3">
                 {acknowledgedCalls.map((call) => (
@@ -116,11 +124,13 @@ export default function StewardDashboard() {
         ) : (
           <>
             {totalAlerts === 0 && (
-              <div className="text-center py-16">
-                <Bell className="h-16 w-16 text-gray-200 mx-auto mb-4" />
-                <p className="text-gray-400 text-lg">All clear!</p>
-                <p className="text-gray-300 text-sm">No pending alerts</p>
-              </div>
+              <EmptyState
+                icon={Bell}
+                eyebrow="Steward desk"
+                title="All clear"
+                description="There are no table calls or ready orders waiting for you."
+                color="red"
+              />
             )}
 
             {pendingCalls.length > 0 && (

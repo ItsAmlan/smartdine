@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { use } from "react";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, UtensilsCrossed } from "lucide-react";
 import GlassNavbar from "@/components/ui/GlassNavbar";
 import DishCard from "@/components/customer/DishCard";
 import CategoryTabs from "@/components/customer/CategoryTabs";
 import CallStewardButton from "@/components/customer/CallStewardButton";
+import EmptyState from "@/components/ui/EmptyState";
 import { useCart } from "@/context/CartContext";
 
 export default function MenuPage({ params }) {
@@ -55,7 +56,11 @@ export default function MenuPage({ params }) {
     <>
       <GlassNavbar title={restaurant?.name || "SmartDine"} color="orange" logo={restaurant?.logo} showBack onBack={() => router.push(`/table/${tableId}`)} />
 
-      <div className="px-5vw py-4">
+      <div className="px-5vw py-6">
+        <div className="mb-6 max-w-xl">
+          <p className="text-orange-600/80 text-[11px] font-bold uppercase tracking-[0.18em] mb-1">Curated for your table</p>
+          <h2 className="text-2xl font-extrabold tracking-[-0.04em] text-gray-900">Choose something memorable.</h2>
+        </div>
         <div className="mb-6">
           <CategoryTabs categories={categories} activeCategory={activeCategory} onSelect={setActiveCategory} />
         </div>
@@ -80,15 +85,21 @@ export default function MenuPage({ params }) {
         </div>
 
         {filteredDishes.length === 0 && (
-          <div className="text-center py-12 text-gray-400">No dishes found in this category.</div>
+          <EmptyState
+            icon={UtensilsCrossed}
+            eyebrow="Menu selection"
+            title="Nothing to savour here yet"
+            description="Try another category, or ask your server about today’s specials."
+            color="orange"
+          />
         )}
       </div>
 
       {totalItems > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-xl border-t border-gray-200 px-5vw py-4">
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/65 backdrop-blur-3xl border-t border-white/90 shadow-[0_-12px_35px_rgba(30,41,59,.08)] px-5vw py-4">
           <button
             onClick={() => router.push("/checkout")}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-3.5 font-semibold transition-colors flex items-center justify-between px-6 shadow-lg"
+            className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-2xl py-3.5 shadow-xl shadow-orange-500/20 font-semibold transition-colors flex items-center justify-between px-6 shadow-lg"
           >
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />

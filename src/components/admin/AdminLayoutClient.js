@@ -69,7 +69,7 @@ export default function AdminLayoutClient({ children }) {
   }
 
   return (
-    <div className="min-h-screen flex relative">
+    <div className="admin-workspace min-h-screen flex relative">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden"
@@ -79,16 +79,16 @@ export default function AdminLayoutClient({ children }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static z-50 inset-y-0 left-0 w-64 backdrop-blur-xl bg-white/70 border-r border-white/60 flex flex-col transition-transform duration-300 ${
+        className={`fixed lg:static z-50 inset-y-0 left-0 w-72 backdrop-blur-3xl bg-gradient-to-b from-white/80 to-white/45 border-r border-white/80 shadow-[10px_0_40px_rgba(30,41,59,.05)] flex flex-col transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="p-6 border-b border-white/40">
-          <h2 className="text-green-600 font-bold text-xl">SmartDine</h2>
-          <p className="text-gray-400 text-xs">Admin Panel</p>
+        <div className="p-7 border-b border-white/60">
+          <h2 className="text-emerald-700 font-extrabold text-xl tracking-[-0.04em]">SmartDine</h2>
+          <p className="text-gray-400 text-xs tracking-[0.12em] uppercase">Admin Panel</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-5 space-y-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -96,10 +96,10 @@ export default function AdminLayoutClient({ children }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 ${
                   isActive
-                    ? "bg-green-50/80 text-green-600 border border-green-200/80"
-                    : "text-gray-600 hover:bg-white/50 hover:text-gray-900"
+                    ? "bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-500/20"
+                    : "text-gray-500 hover:bg-white/65 hover:text-gray-900"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -130,7 +130,7 @@ export default function AdminLayoutClient({ children }) {
             <Menu className="h-6 w-6" />
           </button>
         </div>
-        <main className="flex-1 px-5vw py-6">{children}</main>
+        <main className="flex-1 px-5vw py-8 lg:py-10">{children}</main>
       </div>
     </div>
   );
