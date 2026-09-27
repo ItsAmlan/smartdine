@@ -152,7 +152,7 @@ else
 fi
 
 if $DO_SEED; then
-  node prisma/seed.js
+  npx prisma db seed
 else
   warn "Skipped seeding — run 'npx prisma db seed' whenever you're ready."
 fi

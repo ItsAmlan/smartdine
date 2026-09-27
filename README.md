@@ -81,7 +81,7 @@ A diner can also tap **Call Steward** at any point to send a live alert (e.g. "n
 - 💳 **Integrated payments** via Razorpay, with server-verified signatures
 - 👨‍🍳 **Kitchen dashboard** — accept orders with an ETA, mark dishes unavailable on the fly, pause/resume the queue
 - 🛎️ **Steward dashboard** — live delivery queue plus instant "call steward" alerts
-- 🛠️ **Admin panel** — menu & category management, table/QR code generation and printing, restaurant branding, order analytics, customer directory
+- 🛠️ **Admin panel** — menu & category management, table/QR code generation and printing, restaurant branding, order analytics, customer directory, staff password resets
 - ⚡ **Real-time everywhere** — Server-Sent Events push every status change instantly, no polling
 - 🔒 **Security by default** — signed staff sessions, per-order access tokens, login lockout, role-gated APIs (see [Security](#security))
 
@@ -183,6 +183,7 @@ The schema (`prisma/schema.prisma`) models restaurants, tables, categories, dish
 - **Tokenized order links** — each order gets an unguessable access token; viewing an order's live status (page or SSE stream) requires that token or a logged-in staff session, so order IDs can't be enumerated.
 - **Role-gated APIs** — every admin/kitchen/steward-only endpoint (accept/complete/deliver an order, manage the menu, view analytics, upload images, etc.) requires the matching staff role.
 - **Login lockout** — an account locks for 15 minutes after 5 consecutive failed login attempts, since kitchen/steward accounts are designed to use short PINs.
+- **No self-service password changes for kitchen/steward** — there is no "change my password" option in either app. Only a logged-in admin can reset a staff account's password, from **Admin → Staff Accounts**; doing so also clears any active lockout. Kitchen/steward sessions get a 403 if they try the underlying API directly.
 - **Payment integrity** — order totals are always computed server-side from live dish prices, never trusted from the client; Razorpay payments are verified via HMAC signature before an order is marked paid.
 - **Security headers** — `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` and a restrictive `Permissions-Policy` are set on every response (see `next.config.mjs`).
 

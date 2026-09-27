@@ -23,7 +23,10 @@ export default function StewardDashboard() {
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => { if (!r.ok) { router.replace("/steward/login"); return; } return r.json(); })
-      .then((data) => { if (data?.user) setAuthed(true); })
+      .then((data) => {
+        if (data?.user?.role === "admin" || data?.user?.role === "steward") setAuthed(true);
+        else router.replace("/steward/login");
+      })
       .catch(() => router.replace("/steward/login"));
   }, [router]);
 
