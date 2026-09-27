@@ -32,14 +32,7 @@ export default function TablePage({ params }) {
 
     const savedEmail = typeof window !== "undefined" ? localStorage.getItem(`smartdine-email-${tableId}`) : null;
     if (savedEmail) {
-      fetch("/api/customer/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: "check", email: savedEmail, phone: "0000000000",
-          tableId: parseInt(tableId, 10),
-        }),
-      })
+      fetch(`/api/customer/active-order?email=${encodeURIComponent(savedEmail)}&tableId=${parseInt(tableId, 10)}`)
         .then((r) => r.json())
         .then((data) => {
           if (data.activeOrder) setActiveOrder(data.activeOrder);

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { razorpay } from "@/lib/razorpay";
+import { getRazorpay } from "@/lib/razorpay";
 
 // POST - Create Razorpay order
 export async function POST(request) {
   try {
+    const razorpay = getRazorpay();
     if (!razorpay) {
       return NextResponse.json(
         { error: "Payment gateway not configured" },

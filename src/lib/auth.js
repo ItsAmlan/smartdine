@@ -10,6 +10,21 @@ const SESSION_COOKIE =
     : "smartdine-session";
 const SESSION_MAX_AGE = 8 * 60 * 60; // 8 hours in seconds
 
+// Lazily resolved so a missing secret only breaks auth (at request time),
+// never the build (module-level throws fail `next build` page-data collection).
+function getSessionSecret() {
+  const secret = process.env.SESSION_SECRET;
+  if (secret) return secret;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET must be set in production");
+  }
+  return "dev-only-insecure-session-secret";
+}
+
+function sign(payload) {
+  return crypto.createHmac("sha256", getSessionSecret()).update(payload).digest("hex");
+}
+
 export async function hashPassword(password) {
   return bcrypt.hash(password, SALT_ROUNDS);
 }
@@ -18,15 +33,13 @@ export async function verifyPassword(password, hash) {
   return bcrypt.compare(password, hash);
 }
 
-export function generateSessionToken() {
-  return crypto.randomBytes(32).toString("hex");
-}
-
 export async function createSession(staffUserId) {
-  const token = generateSessionToken();
   const cookieStore = await cookies();
+  const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;
+  const payload = `${staffUserId}.${expiresAt}`;
+  const token = `${payload}.${sign(payload)}`;
 
-  cookieStore.set(SESSION_COOKIE, `${staffUserId}:${token}`, {
+  cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -43,8 +56,22 @@ export async function getSession() {
 
   if (!sessionCookie) return null;
 
-  const [staffUserId] = sessionCookie.value.split(":");
-  if (!staffUserId) return null;
+  const parts = sessionCookie.value.split(".");
+  if (parts.length !== 3) return null;
+  const [staffUserId, expiresAt, signature] = parts;
+
+  const expected = Buffer.from(sign(`${staffUserId}.${expiresAt}`), "hex");
+  const actual = Buffer.from(signature, "hex");
+  if (
+    expected.length !== actual.length ||
+    !crypto.timingSafeEqual(expected, actual)
+  ) {
+    return null;
+  }
+
+  if (!Number.isFinite(Number(expiresAt)) || Date.now() > Number(expiresAt)) {
+    return null;
+  }
 
   try {
     const user = await prisma.staffUser.findUnique({

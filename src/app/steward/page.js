@@ -41,6 +41,10 @@ export default function StewardDashboard() {
 
   useEffect(() => { if (!authed) return; fetchData(); }, [authed, fetchData]);
 
+  const playNotification = useCallback(() => {
+    try { const audio = new Audio("/sounds/notification.mp3"); audio.play().catch(() => {}); } catch {}
+  }, []);
+
   useEffect(() => {
     if (!sseData) return;
     if (sseData.type === "STEWARD_CALL") {
@@ -57,11 +61,7 @@ export default function StewardDashboard() {
       });
       playNotification();
     }
-  }, [sseData]);
-
-  const playNotification = () => {
-    try { const audio = new Audio("/sounds/notification.mp3"); audio.play().catch(() => {}); } catch {}
-  };
+  }, [sseData, playNotification]);
 
   const acknowledgeCall = async (callId) => {
     try {
