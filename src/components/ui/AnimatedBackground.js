@@ -4,6 +4,7 @@ const backgrounds = {
   orange: { avif: "/backgrounds/customer.avif", fallback: "/backgrounds/customer-atmosphere.svg" },
   amber: { avif: "/backgrounds/kitchen.avif", fallback: "/backgrounds/kitchen-atmosphere.svg" },
   red: { avif: "/backgrounds/steward.avif", fallback: "/backgrounds/steward-atmosphere.svg" },
+  green: { avif: "/backgrounds/admin.avif", fallback: "/backgrounds/admin-atmosphere.svg" },
 };
 
 export default function AnimatedBackground({ color = "orange", className = "-z-10" }) {

@@ -6,6 +6,7 @@ import { Shield } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
 import GlassInput from "@/components/ui/GlassInput";
 import GlassButton from "@/components/ui/GlassButton";
+import AnimatedBackground from "@/components/ui/AnimatedBackground";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -32,7 +33,8 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-5vw">
+    <div className="min-h-screen relative flex items-center justify-center px-5vw">
+      <AnimatedBackground color="green" />
       <GlassCard color="green" className="w-full max-w-sm">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100/80 mb-4">
