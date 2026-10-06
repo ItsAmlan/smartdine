@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, ConciergeBell, ChefHat, Check, Truck, Clock } from "lucide-react";
+import { Bell, ConciergeBell, ChefHat, Check, Truck, Clock, Footprints } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
 import GlassButton from "@/components/ui/GlassButton";
 import GlassBadge from "@/components/ui/GlassBadge";
@@ -36,7 +36,7 @@ export default function StewardDashboard() {
   const fetchData = useCallback(async () => {
     try {
       const [callsRes, ordersRes] = await Promise.all([
-        fetch("/api/steward-call"), fetch("/api/orders?status=READY"),
+        fetch("/api/steward-call"), fetch("/api/orders?status=READY,OUT_FOR_SERVICE"),
       ]);
       const callsData = await callsRes.json();
       const ordersData = await ordersRes.json();
@@ -73,6 +73,16 @@ export default function StewardDashboard() {
     try {
       const res = await fetch("/api/steward-call", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ callId }) });
       if (res.ok) setStewardCalls((prev) => prev.map((c) => c.id === callId ? { ...c, status: "ACKNOWLEDGED", acknowledgedAt: new Date() } : c));
+    } catch {}
+  };
+
+  const markOutForService = async (orderId) => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}/serve`, { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setReadyOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: data.order.status } : o)));
+      }
     } catch {}
   };
 
@@ -168,7 +178,7 @@ export default function StewardDashboard() {
             {readyOrders.length > 0 && (
               <div>
                 <h2 className="text-gray-900 font-bold text-lg mb-3 flex items-center gap-2">
-                  <ChefHat className="h-5 w-5 text-red-500" /> Orders Ready ({readyOrders.length})
+                  <ChefHat className="h-5 w-5 text-red-500" /> Orders to Serve ({readyOrders.length})
                 </h2>
                 <div className="space-y-3">
                   {readyOrders.map((order) => (
@@ -177,10 +187,19 @@ export default function StewardDashboard() {
                         <div>
                           <p className="text-gray-900 font-bold">#{order.orderNumber}</p>
                           <p className="text-gray-500 text-sm">{order.table?.tableNumber} • {order.customer?.name}</p>
+                          <GlassBadge variant={order.status === "OUT_FOR_SERVICE" ? "info" : "default"} size="sm" className="mt-1">
+                            {order.status === "OUT_FOR_SERVICE" ? "Out for serving" : "Ready at pass"}
+                          </GlassBadge>
                         </div>
-                        <GlassButton onClick={() => deliverOrder(order.id)} color="red" className="text-sm px-4 py-2">
-                          <Truck className="h-4 w-4" /> Deliver
-                        </GlassButton>
+                        {order.status === "OUT_FOR_SERVICE" ? (
+                          <GlassButton onClick={() => deliverOrder(order.id)} color="red" className="text-sm px-4 py-2">
+                            <Truck className="h-4 w-4" /> Mark Delivered
+                          </GlassButton>
+                        ) : (
+                          <GlassButton onClick={() => markOutForService(order.id)} color="red" className="text-sm px-4 py-2">
+                            <Footprints className="h-4 w-4" /> Out for Serving
+                          </GlassButton>
+                        )}
                       </div>
                     </GlassCard>
                   ))}

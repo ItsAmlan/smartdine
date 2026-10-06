@@ -67,7 +67,7 @@ export default function OrderStatusPage({ params }) {
               </p>
             </div>
             <GlassBadge
-              variant={order.status === "DELIVERED" ? "success" : order.status === "READY" ? "info" : "warning"}
+              variant={order.status === "DELIVERED" ? "success" : ["READY", "OUT_FOR_SERVICE"].includes(order.status) ? "info" : "warning"}
               size="md"
             >
               {order.status.replace(/_/g, " ")}

@@ -1,16 +1,17 @@
 "use client";
 
-import { CheckCircle2, Clock, Truck, CreditCard, Package } from "lucide-react";
+import { CheckCircle2, Clock, Truck, CreditCard, Package, ConciergeBell } from "lucide-react";
 
 const steps = [
   { key: "PAID", label: "Payment Confirmed", icon: CreditCard },
   { key: "ACCEPTED", label: "Order Accepted", icon: CheckCircle2 },
   { key: "READY", label: "Ready for Pickup", icon: Package },
+  { key: "OUT_FOR_SERVICE", label: "Out for Serving", icon: ConciergeBell },
   { key: "DELIVERED", label: "Delivered", icon: Truck },
 ];
 
 const statusIndex = {
-  PAID: 0, PAUSED: 0, ACCEPTED: 1, READY: 2, DELIVERED: 3,
+  PAID: 0, PAUSED: 0, ACCEPTED: 1, READY: 2, OUT_FOR_SERVICE: 3, DELIVERED: 4,
 };
 
 export default function OrderStatusTracker({ status, estimatedMinutes }) {

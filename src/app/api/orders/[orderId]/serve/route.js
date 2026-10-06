@@ -3,8 +3,10 @@ import prisma from "@/lib/prisma";
 import { emitSSE } from "@/lib/sse";
 import { requireAuth } from "@/lib/auth";
 
-// POST - Steward marks an out-for-service order as delivered to the
-// table (steward or admin only)
+// POST - Steward picks up a ready order and heads to the table
+// (steward or admin only). Splits what used to be a single "Deliver"
+// action into two, so the desk can tell "sitting at the pass" apart
+// from "already on its way".
 export async function POST(request, { params }) {
   try {
     const auth = await requireAuth(["admin", "steward"]);
@@ -23,9 +25,9 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    if (order.status !== "OUT_FOR_SERVICE") {
+    if (order.status !== "READY") {
       return NextResponse.json(
-        { error: `Cannot deliver order with status: ${order.status}` },
+        { error: `Cannot mark order out for serving with status: ${order.status}` },
         { status: 400 }
       );
     }
@@ -33,8 +35,8 @@ export async function POST(request, { params }) {
     const updated = await prisma.order.update({
       where: { id: parseInt(orderId, 10) },
       data: {
-        status: "DELIVERED",
-        deliveredAt: new Date(),
+        status: "OUT_FOR_SERVICE",
+        outForServiceAt: new Date(),
       },
       include: {
         items: { include: { dish: true } },
@@ -45,17 +47,16 @@ export async function POST(request, { params }) {
 
     // Notify customer
     emitSSE(`customer-${order.id}`, {
-      type: "ORDER_DELIVERED",
+      type: "ORDER_OUT_FOR_SERVICE",
       order: updated,
     });
 
     return NextResponse.json({ order: updated });
   } catch (error) {
-    console.error("Order acknowledge error:", error.message);
+    console.error("Order serve error:", error.message);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
   }
 }
-

@@ -85,6 +85,7 @@ model Order {
   createdAt        DateTime    @default(now())
   acceptedAt       DateTime?
   completedAt      DateTime?
+  outForServiceAt  DateTime?
   deliveredAt      DateTime?
   items            OrderItem[]
   payment          Payment?
