@@ -62,7 +62,7 @@ export async function PATCH(request) {
         resumedOrders = await prisma.order.findMany({
           where: { id: { in: held.map((o) => o.id) } },
           include: {
-            items: { include: { dish: true } },
+            items: { include: { dish: true, addons: true } },
             customer: { select: { id: true, name: true } },
             table: { select: { id: true, tableNumber: true } },
           },

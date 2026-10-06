@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { Plus, Minus, Package } from "lucide-react";
+import { Plus, Minus, Package, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import GlassBadge from "@/components/ui/GlassBadge";
 
-export default function DishCard({ dish, cartItem, onAdd, onUpdateQuantity, onToggleTakeaway }) {
+export default function DishCard({ dish, cartItem, onAdd, onUpdateQuantity, onToggleTakeaway, onCustomize }) {
   const [imageError, setImageError] = useState(false);
   const quantity = cartItem?.quantity || 0;
   const forTakeaway = cartItem?.forTakeaway || false;
@@ -68,11 +68,11 @@ export default function DishCard({ dish, cartItem, onAdd, onUpdateQuantity, onTo
             ) : (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-xl px-3 py-1">
-                  <button onClick={() => onUpdateQuantity(dish.id, quantity - 1, forTakeaway)} className="text-orange-600 hover:text-orange-700">
+                  <button onClick={() => onUpdateQuantity(cartItem.lineKey, quantity - 1)} className="text-orange-600 hover:text-orange-700">
                     <Minus className="h-4 w-4" />
                   </button>
                   <span className="text-gray-900 font-semibold text-sm min-w-[20px] text-center">{quantity}</span>
-                  <button onClick={() => onUpdateQuantity(dish.id, quantity + 1, forTakeaway)} className="text-orange-600 hover:text-orange-700">
+                  <button onClick={() => onUpdateQuantity(cartItem.lineKey, quantity + 1)} className="text-orange-600 hover:text-orange-700">
                     <Plus className="h-4 w-4" />
                   </button>
                 </div>
@@ -84,11 +84,18 @@ export default function DishCard({ dish, cartItem, onAdd, onUpdateQuantity, onTo
 
             {quantity > 0 && (
               <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-500">
-                <input type="checkbox" checked={forTakeaway} onChange={() => onToggleTakeaway(dish.id, forTakeaway)}
+                <input type="checkbox" checked={forTakeaway} onChange={() => onToggleTakeaway(cartItem.lineKey)}
                   className="rounded border-gray-300 text-orange-500 focus:ring-orange-300" />
                 <Package className="h-3 w-3" /> Pack for takeaway
               </label>
             )}
+
+            <button
+              onClick={() => onCustomize(dish)}
+              className="w-full flex items-center justify-center gap-1.5 text-orange-600 text-xs font-semibold py-1 hover:text-orange-700"
+            >
+              <SlidersHorizontal className="h-3 w-3" /> Customize{dish.addons?.length ? "" : " / Add a note"}
+            </button>
           </div>
         )}
       </div>

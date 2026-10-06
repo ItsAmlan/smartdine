@@ -8,6 +8,7 @@ import GlassNavbar from "@/components/ui/GlassNavbar";
 import DishCard from "@/components/customer/DishCard";
 import CategoryTabs from "@/components/customer/CategoryTabs";
 import CallStewardButton from "@/components/customer/CallStewardButton";
+import CustomizeModal from "@/components/customer/CustomizeModal";
 import EmptyState from "@/components/ui/EmptyState";
 import { useCart } from "@/context/CartContext";
 
@@ -20,6 +21,8 @@ export default function MenuPage({ params }) {
   const [activeCategory, setActiveCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [restaurant, setRestaurant] = useState(null);
+  const [customizeDish, setCustomizeDish] = useState(null);
+  const [customizeNonce, setCustomizeNonce] = useState(0);
 
   useEffect(() => {
     setTableId(parseInt(tableId, 10));
@@ -35,7 +38,11 @@ export default function MenuPage({ params }) {
       .catch(() => setLoading(false));
   }, [tableId, setTableId]);
 
-  const getCartItem = (dishId) => items.find((item) => item.dish.id === dishId);
+  const getCartItem = (dishId) => items.find((item) => item.dish.id === dishId && item.addons.length === 0 && !item.notes);
+
+  const handleCustomizeConfirm = (dish, quantity, selectedAddons, notes) => {
+    addItem(dish, quantity, false, selectedAddons, notes);
+  };
 
   const filteredDishes = activeCategory
     ? categories.filter((c) => c.id === activeCategory).flatMap((c) => c.dishes)
@@ -80,6 +87,7 @@ export default function MenuPage({ params }) {
               onAdd={(d) => addItem(d, 1, false)}
               onUpdateQuantity={updateQuantity}
               onToggleTakeaway={toggleTakeaway}
+              onCustomize={(d) => { setCustomizeDish(d); setCustomizeNonce((n) => n + 1); }}
             />
           ))}
         </div>
@@ -111,6 +119,14 @@ export default function MenuPage({ params }) {
       )}
 
       <CallStewardButton tableId={parseInt(tableId, 10)} />
+
+      <CustomizeModal
+        key={customizeNonce}
+        dish={customizeDish}
+        isOpen={!!customizeDish}
+        onClose={() => setCustomizeDish(null)}
+        onConfirm={handleCustomizeConfirm}
+      />
     </>
   );
 }

@@ -37,7 +37,7 @@ export async function POST(request, { params }) {
         deliveredAt: new Date(),
       },
       include: {
-        items: { include: { dish: true } },
+        items: { include: { dish: true, addons: true } },
         customer: { select: { name: true } },
         table: { select: { tableNumber: true } },
       },

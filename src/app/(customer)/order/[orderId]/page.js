@@ -82,14 +82,20 @@ export default function OrderStatusPage({ params }) {
           </h3>
           <div className="space-y-3">
             {order.items?.map((item) => (
-              <div key={item.id} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 flex-1">
-                  <span className={`w-2.5 h-2.5 rounded-full ${item.dish?.isVeg ? "bg-green-500" : "bg-red-500"}`} />
-                  <span className="text-gray-700">{item.dish?.name}</span>
-                  <span className="text-gray-400">×{item.quantity}</span>
-                  {item.forTakeaway && <Package className="h-3 w-3 text-orange-500" />}
+              <div key={item.id} className="text-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className={`w-2.5 h-2.5 rounded-full ${item.dish?.isVeg ? "bg-green-500" : "bg-red-500"}`} />
+                    <span className="text-gray-700">{item.dish?.name}</span>
+                    <span className="text-gray-400">×{item.quantity}</span>
+                    {item.forTakeaway && <Package className="h-3 w-3 text-orange-500" />}
+                  </div>
+                  <span className="text-gray-600">₹{parseFloat(item.subtotal).toFixed(0)}</span>
                 </div>
-                <span className="text-gray-600">₹{parseFloat(item.subtotal).toFixed(0)}</span>
+                {item.addons?.length > 0 && (
+                  <p className="text-gray-400 text-xs ml-5 mt-0.5">{item.addons.map((a) => a.name).join(", ")}</p>
+                )}
+                {item.notes && <p className="text-gray-400 text-xs ml-5 mt-0.5 italic">“{item.notes}”</p>}
               </div>
             ))}
             <div className="border-t border-gray-100 pt-2 flex justify-between font-bold text-gray-900">

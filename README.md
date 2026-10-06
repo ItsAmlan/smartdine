@@ -78,6 +78,7 @@ A diner can also tap **Call Steward** at any point to send a live alert (e.g. "n
 
 - 📱 **QR-code table ordering** — no app install, just a browser
 - 🧾 **Live order tracking** for the customer, from payment to delivery
+- 🎛️ **Item customization** — free or chargeable add-ons per dish (e.g. "Extra Cheese +₹30", "No Onion" free), plus a special-instructions note per item, visible to the kitchen on every ticket
 - 💳 **Integrated payments** via Razorpay, with server-verified signatures
 - 👨‍🍳 **Kitchen dashboard** — accept orders with an ETA, mark dishes unavailable on the fly, pause/resume the queue
 - 🛎️ **Steward dashboard** — live delivery queue plus instant "call steward" alerts

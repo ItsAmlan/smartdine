@@ -18,6 +18,11 @@ export async function GET() {
             available: true,
             isVeg: true,
             categoryId: true,
+            addons: {
+              where: { active: true },
+              orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+              select: { id: true, name: true, price: true },
+            },
           },
         },
       },

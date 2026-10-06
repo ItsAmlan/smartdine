@@ -48,7 +48,7 @@ export async function POST(request) {
         where: { id: payment.orderId },
         data: { status: orderStatus },
         include: {
-          items: { include: { dish: true } },
+          items: { include: { dish: true, addons: true } },
           customer: { select: { id: true, name: true, email: true } },
           table: { select: { id: true, tableNumber: true } },
           payment: true,

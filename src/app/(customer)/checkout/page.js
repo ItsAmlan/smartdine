@@ -12,7 +12,7 @@ import { useCart } from "@/context/CartContext";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, tableId, customer, updateQuantity, toggleTakeaway, removeItem, totalAmount, clearCart } = useCart();
+  const { items, tableId, customer, updateQuantity, toggleTakeaway, removeItem, lineTotal, totalAmount, clearCart } = useCart();
 
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
@@ -32,7 +32,13 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerId: parseInt(customerId, 10), tableId,
-          items: items.map((item) => ({ dishId: item.dish.id, quantity: item.quantity, forTakeaway: item.forTakeaway })),
+          items: items.map((item) => ({
+            dishId: item.dish.id,
+            quantity: item.quantity,
+            forTakeaway: item.forTakeaway,
+            addonIds: item.addons.map((a) => a.id),
+            notes: item.notes,
+          })),
         }),
       });
       const orderData = await orderRes.json();
@@ -105,7 +111,7 @@ export default function CheckoutPage() {
 
         <div className="space-y-3 mb-6">
           {items.map((item) => (
-            <GlassCard key={`${item.dish.id}-${item.forTakeaway}`} color="orange" padding="p-4">
+            <GlassCard key={item.lineKey} color="orange" padding="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -113,21 +119,27 @@ export default function CheckoutPage() {
                     <h4 className="text-gray-900 font-medium text-sm">{item.dish.name}</h4>
                   </div>
                   <p className="text-gray-400 text-xs mt-1">₹{parseFloat(item.dish.price).toFixed(0)} each</p>
+                  {item.addons.length > 0 && (
+                    <p className="text-gray-500 text-xs mt-1">
+                      {item.addons.map((a) => `${a.name}${parseFloat(a.price) > 0 ? ` (+₹${parseFloat(a.price).toFixed(0)})` : " (free)"}`).join(", ")}
+                    </p>
+                  )}
+                  {item.notes && <p className="text-gray-400 text-xs mt-1 italic">“{item.notes}”</p>}
                 </div>
-                <button onClick={() => removeItem(item.dish.id, item.forTakeaway)} className="text-gray-300 hover:text-red-500 transition-colors p-1"><Trash2 className="h-4 w-4" /></button>
+                <button onClick={() => removeItem(item.lineKey)} className="text-gray-300 hover:text-red-500 transition-colors p-1"><Trash2 className="h-4 w-4" /></button>
               </div>
 
               <div className="flex items-center justify-between mt-3">
                 <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5">
-                  <button onClick={() => updateQuantity(item.dish.id, item.quantity - 1, item.forTakeaway)} className="text-gray-600 hover:text-orange-500"><Minus className="h-4 w-4" /></button>
+                  <button onClick={() => updateQuantity(item.lineKey, item.quantity - 1)} className="text-gray-600 hover:text-orange-500"><Minus className="h-4 w-4" /></button>
                   <span className="text-gray-900 font-semibold text-sm min-w-[20px] text-center">{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.dish.id, item.quantity + 1, item.forTakeaway)} className="text-gray-600 hover:text-orange-500"><Plus className="h-4 w-4" /></button>
+                  <button onClick={() => updateQuantity(item.lineKey, item.quantity + 1)} className="text-gray-600 hover:text-orange-500"><Plus className="h-4 w-4" /></button>
                 </div>
                 <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
-                  <input type="checkbox" checked={item.forTakeaway} onChange={() => toggleTakeaway(item.dish.id, item.forTakeaway)} className="rounded border-gray-300 text-orange-500" />
+                  <input type="checkbox" checked={item.forTakeaway} onChange={() => toggleTakeaway(item.lineKey)} className="rounded border-gray-300 text-orange-500" />
                   <Package className="h-3 w-3" /> Takeaway
                 </label>
-                <span className="text-orange-600 font-semibold text-sm">₹{(parseFloat(item.dish.price) * item.quantity).toFixed(0)}</span>
+                <span className="text-orange-600 font-semibold text-sm">₹{lineTotal(item).toFixed(0)}</span>
               </div>
             </GlassCard>
           ))}

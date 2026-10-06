@@ -43,7 +43,7 @@ export async function GET(request) {
     const orders = await prisma.order.findMany({
       where,
       include: {
-        items: { include: { dish: true } },
+        items: { include: { dish: true, addons: true } },
         customer: {
           select: { id: true, name: true, email: true, phone: true },
         },
@@ -99,21 +99,53 @@ export async function POST(request) {
       );
     }
 
+    // Validate every chosen addon actually belongs to its dish and is
+    // still active - never trust addon prices from the client.
+    const allAddonIds = [...new Set(items.flatMap((item) => item.addonIds || []))];
+    const addons = allAddonIds.length
+      ? await prisma.dishAddon.findMany({ where: { id: { in: allAddonIds } } })
+      : [];
+    const addonById = new Map(addons.map((a) => [a.id, a]));
+
+    for (const item of items) {
+      for (const addonId of item.addonIds || []) {
+        const addon = addonById.get(addonId);
+        if (!addon || !addon.active || addon.dishId !== item.dishId) {
+          return NextResponse.json(
+            { error: "One or more selected customizations are no longer available" },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     // Generate order number and an unguessable token customers use to view
     // this order without a login (see /api/orders/[orderId]).
     const orderNumber = `SD-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
     const accessToken = crypto.randomBytes(24).toString("hex");
 
-    // Calculate totals
+    // Calculate totals - each addon's price applies per unit, same as the
+    // dish price itself (order 2 with "extra cheese" -> charged twice).
     const orderItems = items.map((item) => {
       const dish = dishes.find((d) => d.id === item.dishId);
       const unitPrice = parseFloat(dish.price);
+      const quantity = parseInt(item.quantity, 10);
+      const chosenAddons = (item.addonIds || []).map((id) => addonById.get(id));
+      const addonsUnitTotal = chosenAddons.reduce((sum, a) => sum + parseFloat(a.price), 0);
       return {
         dishId: item.dishId,
-        quantity: parseInt(item.quantity, 10),
+        quantity,
         forTakeaway: Boolean(item.forTakeaway),
+        notes: item.notes?.trim() ? item.notes.trim().slice(0, 300) : null,
         unitPrice,
-        subtotal: unitPrice * parseInt(item.quantity, 10),
+        subtotal: (unitPrice + addonsUnitTotal) * quantity,
+        addons: {
+          create: chosenAddons.map((a) => ({
+            dishAddonId: a.id,
+            name: a.name,
+            price: a.price,
+          })),
+        },
       };
     });
 
@@ -134,7 +166,7 @@ export async function POST(request) {
           },
         },
         include: {
-          items: { include: { dish: true } },
+          items: { include: { dish: true, addons: true } },
           customer: { select: { id: true, name: true } },
           table: { select: { id: true, tableNumber: true } },
         },

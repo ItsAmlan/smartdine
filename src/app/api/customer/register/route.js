@@ -70,7 +70,7 @@ export async function POST(request) {
         },
       },
       include: {
-        items: { include: { dish: true } },
+        items: { include: { dish: true, addons: true } },
         payment: true,
       },
       orderBy: { createdAt: "desc" },

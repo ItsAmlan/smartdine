@@ -4,74 +4,66 @@ import { createContext, useContext, useState, useCallback } from "react";
 
 const CartContext = createContext(null);
 
+// Two cart lines are the "same" line (and so merge quantity) only if the
+// dish, takeaway flag, chosen addons and note all match - a plain
+// "Paneer Tikka" and a "Paneer Tikka, extra cheese, no onions" are kept
+// as separate lines even though they're the same dish.
+function buildLineKey(dishId, forTakeaway, addonIds = [], notes = "") {
+  const sortedAddons = [...addonIds].sort((a, b) => a - b).join(",");
+  return `${dishId}|${forTakeaway}|${sortedAddons}|${(notes || "").trim()}`;
+}
+
 export function CartProvider({ children }) {
   const [items, setItems] = useState([]);
   const [tableId, setTableId] = useState(null);
   const [customer, setCustomer] = useState(null);
 
-  const addItem = useCallback((dish, quantity = 1, forTakeaway = false) => {
+  const addItem = useCallback((dish, quantity = 1, forTakeaway = false, addons = [], notes = "") => {
+    const lineKey = buildLineKey(dish.id, forTakeaway, addons.map((a) => a.id), notes);
     setItems((prev) => {
-      const existing = prev.find(
-        (item) => item.dish.id === dish.id && item.forTakeaway === forTakeaway
-      );
+      const existing = prev.find((item) => item.lineKey === lineKey);
       if (existing) {
         return prev.map((item) =>
-          item.dish.id === dish.id && item.forTakeaway === forTakeaway
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
+          item.lineKey === lineKey ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
-      return [...prev, { dish, quantity, forTakeaway }];
+      return [...prev, { lineKey, dish, quantity, forTakeaway, addons, notes: notes?.trim() || "" }];
     });
   }, []);
 
-  const updateQuantity = useCallback((dishId, quantity, forTakeaway) => {
+  const updateQuantity = useCallback((lineKey, quantity) => {
     if (quantity <= 0) {
-      setItems((prev) =>
-        prev.filter(
-          (item) =>
-            !(item.dish.id === dishId && item.forTakeaway === forTakeaway)
-        )
-      );
+      setItems((prev) => prev.filter((item) => item.lineKey !== lineKey));
     } else {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.dish.id === dishId && item.forTakeaway === forTakeaway
-            ? { ...item, quantity }
-            : item
-        )
-      );
+      setItems((prev) => prev.map((item) => (item.lineKey === lineKey ? { ...item, quantity } : item)));
     }
   }, []);
 
-  const toggleTakeaway = useCallback((dishId, currentTakeaway) => {
+  const toggleTakeaway = useCallback((lineKey) => {
     setItems((prev) =>
-      prev.map((item) =>
-        item.dish.id === dishId && item.forTakeaway === currentTakeaway
-          ? { ...item, forTakeaway: !currentTakeaway }
-          : item
-      )
+      prev.map((item) => {
+        if (item.lineKey !== lineKey) return item;
+        const forTakeaway = !item.forTakeaway;
+        return { ...item, forTakeaway, lineKey: buildLineKey(item.dish.id, forTakeaway, item.addons.map((a) => a.id), item.notes) };
+      })
     );
   }, []);
 
-  const removeItem = useCallback((dishId, forTakeaway) => {
-    setItems((prev) =>
-      prev.filter(
-        (item) =>
-          !(item.dish.id === dishId && item.forTakeaway === forTakeaway)
-      )
-    );
+  const removeItem = useCallback((lineKey) => {
+    setItems((prev) => prev.filter((item) => item.lineKey !== lineKey));
   }, []);
 
   const clearCart = useCallback(() => {
     setItems([]);
   }, []);
 
+  const lineTotal = (item) => {
+    const addonsTotal = item.addons.reduce((sum, a) => sum + parseFloat(a.price), 0);
+    return (parseFloat(item.dish.price) + addonsTotal) * item.quantity;
+  };
+
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalAmount = items.reduce(
-    (sum, item) => sum + item.quantity * parseFloat(item.dish.price),
-    0
-  );
+  const totalAmount = items.reduce((sum, item) => sum + lineTotal(item), 0);
 
   return (
     <CartContext.Provider
@@ -86,6 +78,7 @@ export function CartProvider({ children }) {
         toggleTakeaway,
         removeItem,
         clearCart,
+        lineTotal,
         totalItems,
         totalAmount,
       }}
@@ -102,4 +95,3 @@ export function useCart() {
   }
   return context;
 }
-

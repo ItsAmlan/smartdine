@@ -270,12 +270,20 @@ export default function KitchenDashboard() {
                       {statusBadge(order.status)}
                     </div>
 
-                    <div className="space-y-1.5 mb-4">
+                    <div className="space-y-2 mb-4">
                       {order.items?.map((item) => (
-                        <div key={item.id} className="flex items-center gap-2 text-sm">
-                          <span className="text-amber-600 font-mono">{item.quantity}×</span>
-                          <span className="text-gray-700">{item.dish?.name}</span>
-                          {item.forTakeaway && <Package className="h-3 w-3 text-amber-500" />}
+                        <div key={item.id} className="text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="text-amber-600 font-mono">{item.quantity}×</span>
+                            <span className="text-gray-700">{item.dish?.name}</span>
+                            {item.forTakeaway && <Package className="h-3 w-3 text-amber-500" />}
+                          </div>
+                          {item.addons?.length > 0 && (
+                            <p className="text-amber-700 text-xs ml-6 font-medium">{item.addons.map((a) => a.name).join(", ")}</p>
+                          )}
+                          {item.notes && (
+                            <p className="text-gray-500 text-xs ml-6 italic">Note: {item.notes}</p>
+                          )}
                         </div>
                       ))}
                     </div>
