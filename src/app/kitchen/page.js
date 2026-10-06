@@ -12,6 +12,8 @@ import GlassInput from "@/components/ui/GlassInput";
 import GlassToggle from "@/components/ui/GlassToggle";
 import EmptyState from "@/components/ui/EmptyState";
 import useSSE from "@/hooks/useSSE";
+import useWakeLock from "@/hooks/useWakeLock";
+import { playNotificationChime } from "@/lib/notificationSound";
 
 export default function KitchenDashboard() {
   const router = useRouter();
@@ -27,10 +29,11 @@ export default function KitchenDashboard() {
   const [showDishes, setShowDishes] = useState(false);
 
   const { data: sseData } = useSSE("/api/events/kitchen");
+  useWakeLock(authed);
 
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await fetch("/api/orders?status=PAID,ACCEPTED,PREPARING,READY,PAUSED");
+      const res = await fetch("/api/orders?status=PAID,ACCEPTED,READY,PAUSED");
       const data = await res.json();
       setOrders(data.orders || []);
     } catch { /* Handle silently */ }
@@ -81,7 +84,7 @@ export default function KitchenDashboard() {
         if (exists) return prev;
         return [sseData.order, ...prev];
       });
-      try { const audio = new Audio("/sounds/notification.mp3"); audio.play().catch(() => {}); } catch {}
+      playNotificationChime();
     }
     if (sseData?.type === "KITCHEN_STATUS") {
       setAcceptingOrders(sseData.acceptingOrders);
@@ -154,9 +157,9 @@ export default function KitchenDashboard() {
   };
 
   const filteredOrders = orders.filter((o) => {
-    if (filter === "active") return ["PAID", "ACCEPTED", "PREPARING", "PAUSED"].includes(o.status);
+    if (filter === "active") return ["PAID", "ACCEPTED", "PAUSED"].includes(o.status);
     if (filter === "pending") return o.status === "PAID" || o.status === "PAUSED";
-    if (filter === "accepted") return o.status === "ACCEPTED" || o.status === "PREPARING";
+    if (filter === "accepted") return o.status === "ACCEPTED";
     if (filter === "ready") return o.status === "READY";
     return true;
   });
@@ -166,7 +169,6 @@ export default function KitchenDashboard() {
       PAID: { variant: "warning", label: "New" },
       PAUSED: { variant: "danger", label: "Paused" },
       ACCEPTED: { variant: "info", label: "Accepted" },
-      PREPARING: { variant: "info", label: "Preparing" },
       READY: { variant: "success", label: "Ready" },
     };
     const s = map[status] || { variant: "default", label: status };
@@ -284,7 +286,7 @@ export default function KitchenDashboard() {
                           <Check className="h-4 w-4" /> Accept
                         </GlassButton>
                       )}
-                      {(order.status === "ACCEPTED" || order.status === "PREPARING") && (
+                      {order.status === "ACCEPTED" && (
                         <GlassButton onClick={() => handleComplete(order.id)} color="amber" className="text-sm px-4 py-2 flex-1">
                           <ChefHat className="h-4 w-4" /> Mark Complete
                         </GlassButton>

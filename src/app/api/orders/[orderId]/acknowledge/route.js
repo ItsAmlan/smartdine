@@ -3,7 +3,8 @@ import prisma from "@/lib/prisma";
 import { emitSSE } from "@/lib/sse";
 import { requireAuth } from "@/lib/auth";
 
-// POST - Steward acknowledges and delivers order (steward or admin only)
+// POST - Steward marks an out-for-service order as delivered to the
+// table (steward or admin only)
 export async function POST(request, { params }) {
   try {
     const auth = await requireAuth(["admin", "steward"]);
@@ -22,7 +23,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    if (order.status !== "READY") {
+    if (order.status !== "OUT_FOR_SERVICE") {
       return NextResponse.json(
         { error: `Cannot deliver order with status: ${order.status}` },
         { status: 400 }

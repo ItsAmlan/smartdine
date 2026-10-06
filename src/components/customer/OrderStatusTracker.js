@@ -1,17 +1,17 @@
 "use client";
 
-import { CheckCircle2, Clock, ChefHat, Truck, CreditCard, Package } from "lucide-react";
+import { CheckCircle2, Clock, Truck, CreditCard, Package, ConciergeBell } from "lucide-react";
 
 const steps = [
   { key: "PAID", label: "Payment Confirmed", icon: CreditCard },
   { key: "ACCEPTED", label: "Order Accepted", icon: CheckCircle2 },
-  { key: "PREPARING", label: "Preparing", icon: ChefHat },
   { key: "READY", label: "Ready for Pickup", icon: Package },
+  { key: "OUT_FOR_SERVICE", label: "Out for Serving", icon: ConciergeBell },
   { key: "DELIVERED", label: "Delivered", icon: Truck },
 ];
 
 const statusIndex = {
-  PAID: 0, PAUSED: 0, ACCEPTED: 1, PREPARING: 2, READY: 3, DELIVERED: 4,
+  PAID: 0, PAUSED: 0, ACCEPTED: 1, READY: 2, OUT_FOR_SERVICE: 3, DELIVERED: 4,
 };
 
 export default function OrderStatusTracker({ status, estimatedMinutes }) {
@@ -19,7 +19,7 @@ export default function OrderStatusTracker({ status, estimatedMinutes }) {
 
   return (
     <div className="space-y-4">
-      {estimatedMinutes && currentStep >= 1 && currentStep < 3 && (
+      {estimatedMinutes && currentStep === 1 && (
         <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
           <Clock className="h-5 w-5 text-orange-500" />
           <span className="text-orange-700 font-medium">

@@ -55,7 +55,7 @@ export default function OrderStatusPage({ params }) {
 
   return (
     <>
-      <GlassNavbar title="Order Status" color="orange" />
+      <GlassNavbar title="Order Status" color="orange" showBack onBack={() => router.push(`/table/${order.tableId}/menu`)} />
 
       <div className="px-5vw py-6 max-w-lg mx-auto">
         <GlassCard color="orange" className="mb-6">
@@ -67,7 +67,7 @@ export default function OrderStatusPage({ params }) {
               </p>
             </div>
             <GlassBadge
-              variant={order.status === "DELIVERED" ? "success" : order.status === "READY" ? "info" : "warning"}
+              variant={order.status === "DELIVERED" ? "success" : ["READY", "OUT_FOR_SERVICE"].includes(order.status) ? "info" : "warning"}
               size="md"
             >
               {order.status.replace(/_/g, " ")}
