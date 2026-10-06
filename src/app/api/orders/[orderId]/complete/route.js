@@ -22,7 +22,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    if (!["ACCEPTED", "PREPARING"].includes(order.status)) {
+    if (order.status !== "ACCEPTED") {
       return NextResponse.json(
         { error: `Cannot complete order with status: ${order.status}` },
         { status: 400 }

@@ -9,6 +9,8 @@ import GlassBadge from "@/components/ui/GlassBadge";
 import GlassNavbar from "@/components/ui/GlassNavbar";
 import EmptyState from "@/components/ui/EmptyState";
 import useSSE from "@/hooks/useSSE";
+import useWakeLock from "@/hooks/useWakeLock";
+import { playNotificationChime } from "@/lib/notificationSound";
 
 export default function StewardDashboard() {
   const router = useRouter();
@@ -19,6 +21,7 @@ export default function StewardDashboard() {
   const [loading, setLoading] = useState(true);
 
   const { data: sseData } = useSSE("/api/events/steward");
+  useWakeLock(authed);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -45,7 +48,7 @@ export default function StewardDashboard() {
   useEffect(() => { if (!authed) return; fetchData(); }, [authed, fetchData]);
 
   const playNotification = useCallback(() => {
-    try { const audio = new Audio("/sounds/notification.mp3"); audio.play().catch(() => {}); } catch {}
+    playNotificationChime();
   }, []);
 
   useEffect(() => {
