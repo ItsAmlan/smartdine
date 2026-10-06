@@ -55,7 +55,7 @@ export default function OrderStatusPage({ params }) {
 
   return (
     <>
-      <GlassNavbar title="Order Status" color="orange" />
+      <GlassNavbar title="Order Status" color="orange" showBack onBack={() => router.push(`/table/${order.tableId}/menu`)} />
 
       <div className="px-5vw py-6 max-w-lg mx-auto">
         <GlassCard color="orange" className="mb-6">
